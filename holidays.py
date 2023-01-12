@@ -1,12 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
-import logging
+import logging.config
 #
-from conf import HOLIDAYS_SOURCE
+from conf import HOLIDAYS_SOURCE, LOG_CONFIG
 
 
+logging.config.dictConfig(LOG_CONFIG)
 logger = logging.getLogger('HolidayParser')
-logger.setLevel(logging.DEBUG)
 
 
 class HolyParser:
