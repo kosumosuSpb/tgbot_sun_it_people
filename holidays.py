@@ -32,8 +32,8 @@ class HolyParser:
         holidays = self.get_holidays(page)
         events = self.get_events(page)
         return {
-            'holidays': holidays,
-            'events': events
+            'Праздник': holidays,
+            'События в истории': events
         }
 
     def get_page(self, source='') -> str:
