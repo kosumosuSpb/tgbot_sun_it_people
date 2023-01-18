@@ -1,12 +1,9 @@
 import logging.config
-import argparse
-import textwrap
 import datetime as dt
 from time import sleep
 from threading import Thread
 from typing import Callable
 #
-import scheduler
 import telebot
 from scheduler import Scheduler
 #
@@ -16,15 +13,16 @@ from utils import *
 
 
 logging.config.dictConfig(LOG_CONFIG)
-logger = logging.getLogger('Greetings_TGBot')
+logger = logging.getLogger('GreeTG_Bot')
 
 
 bot = telebot.TeleBot(TOKEN)  # создание экземпляра класса TeleBot и передача токена ему
 run = True
 
 
+# Дополнительные фильтры для команд
 class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
-    # Class will check whether the user is admin or creator in group or not
+    """Class will check whether the user is admin or creator in group or not"""
     key = 'is_chat_admin'
 
     def check(self, message: telebot.types.Message):
@@ -34,12 +32,13 @@ class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
 bot.add_custom_filter(IsAdmin())
 
 
+# Обработчики команд
 @bot.message_handler(commands=['start'], chat_types=["private", "group"])
 def start(message: telebot.types.Message):
     """Обработчик команды /start"""
-    task = get_schedule(send_holidays, chat_id=message.chat.id)
+    task = set_schedule(send_morning_message, chat_id=message.chat.id)
     Thread(target=start_tasks, args=(task,), name='Periodicly_tasks').start()
-    logger.info('Расписание запушено')
+    logger.info('Расписание запущено')
     bot.send_message(message.chat.id, 'Расписание запущено')
 
 
@@ -49,7 +48,7 @@ def help_message(message: telebot.types.Message):
     bot.send_message(message.chat.id, 'тест для вывода на команду /help')
 
 
-@bot.message_handler(commands=['stop'], chat_types=["private", "group"], is_chat_admin=True)
+@bot.message_handler(commands=['stop'], chat_types=["group"], is_chat_admin=True)
 def stop_bot(message: telebot.types.Message):
     """Обработчик команды /stop"""
     # вариант до настройки фильтров. Пока оставил
@@ -60,8 +59,18 @@ def stop_bot(message: telebot.types.Message):
 
     global run
     run = False
-    bot.stop_bot()
     bot.send_message(message.chat.id, 'Бот остановлен')
+    bot.stop_bot()
+    logger.info('Бот остановлен')
+
+
+@bot.message_handler(commands=['stop'], chat_types=["private"])
+def stop_bot(message: telebot.types.Message):
+    """Обработчик команды /stop"""
+    global run
+    run = False
+    bot.send_message(message.chat.id, 'Бот остановлен')
+    bot.stop_bot()
     logger.info('Бот остановлен')
 
 
@@ -74,59 +83,47 @@ def new_member(message: telebot.types.Message):
 
 def send_message_to_group(text: str, chat_id: int):
     """отправка сообщения в группу"""
+    bot.send_message(chat_id, text)
 
 
 # TASKS
 
 def start_tasks(schedule: Scheduler):
-    while True:
+    global run
+    logger.info(f'Расписание запущено в {dt.datetime.now().ctime()}')
+    while run:
         schedule.exec_jobs()
         sleep(1)
 
+    logger.info('Расписание остановлено')
 
-def get_schedule(task: Callable, *, hour=10, minute=0, second=0, **kwargs):
+
+# TODO: сделать задание расписания через сообщение
+def set_schedule(task: Callable, *, hour=10, minute=0, second=0, **kwargs):
     """Создаёт расписание и возвращает экземпляр класса Scheduler"""
     schedule = Scheduler()
     schedule.daily(dt.time(hour=hour, minute=minute, second=second), task, kwargs=kwargs)
     return schedule
 
 
-def send_holidays(chat_id):
+#
+
+def get_str_holidays():
     parser = HolyParser()
     all_events = parser.get_all()
-    message = dict_to_format_string(all_events)
-    send_message_to_group(message, chat_id)
+    return dict_to_format_string(all_events)
 
 
-# Аргументы для запуска
-def arg_parser():
-    """Определяет аргументы"""
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=textwrap.dedent("""
-                                     Telegram bot for telegram chat sun_it_people
-                                     """))
+def send_morning_message(chat_id):
+    greetings = generate_greeting()
+    holidays = get_str_holidays()
 
-    # добавляем аргументы:
-    parser.add_argument('-t', '--token', action="store", default=None,
-                        help='Bot token. By default is None.')
-
-    args = parser.parse_args()
-    return args
+    send_message_to_group(greetings, chat_id)
+    send_message_to_group(holidays, chat_id)
 
 
 if __name__ == '__main__':
-    args = arg_parser()
+    logger.info('Start bot')
+    bot.polling(none_stop=True)  # запуск с параметром "не останавливать работу"
+    logger.info('Bot has been stopped')
 
-    # TODO: этот бред надо переписать
-    if not args.token and not TOKEN:
-        logger.error('Не введён токен бота! '
-                     'Нужно прописать его в конфиге в переменную TOKEN, либо ввести, как аргумент: "-t TOKEN"')
-    else:
-        TOKEN = args.token or TOKEN
-
-    try:
-        bot.polling(none_stop=True)  # запуск с параметром "не останавливать работу"
-    except KeyboardInterrupt:
-        run = False
-        bot.stop_bot()
-        print('Остановлено пользователем')
