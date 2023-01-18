@@ -3,16 +3,16 @@ HOLIDAYS_SOURCE = 'https://kakoysegodnyaprazdnik.ru/'
 HOROSCOPE_SOURCE = ''
 
 # CELERY CONFIG
-celery_broker_url = 'redis://localhost:6379/0'
-celery_result_backend = 'redis://localhost:6379/0'
+# celery_broker_url = 'redis://localhost:6379/0'
+# celery_result_backend = 'redis://localhost:6379/0'
 # celery_broker_url = 'redis://redis:6379/0'
 # celery_result_backend = 'redis://redis:6379/1'
 
-celery_task_serializer = 'json'
-celery_result_serializer = 'json'
-celery_accept_content = ['json']
-celery_timezone = 'Europe/Moscow'
-celery_enable_utc = True
+# celery_task_serializer = 'json'
+# celery_result_serializer = 'json'
+# celery_accept_content = ['json']
+# celery_timezone = 'Europe/Moscow'
+# celery_enable_utc = True
 
 # GREETINGS
 # TODO: вынести это в отдельные файлы в папке conf, например, и парсить при запуске
@@ -67,7 +67,7 @@ LOG_CONFIG = {
     # Loggers format
     'formatters': {
         'default_formatter': {
-            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            'format': '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
         },
         # 'short_formatter': {
         #     'format': '[%(levelname)-.1s] %(asctime)s (%(name)s) - %(message)s',
@@ -104,7 +104,7 @@ LOG_CONFIG = {
     'loggers': {
         # '': {
         #     'handlers': ['stream_handler', 'file_handler', 'errors_file_handler'],
-        #     'level': 'WARNING',
+        #     'level': 'DEBUG',
         #     'propagate': True
         # },
         'GreeTG_Bot': {

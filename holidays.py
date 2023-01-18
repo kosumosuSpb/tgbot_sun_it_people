@@ -38,7 +38,9 @@ class HolyParser:
 
     def get_page(self, source='') -> str:
         source = source or self.source
+        logger.debug(f'Запрос страницы {source}')
         html = requests.get(source, headers=self.headers)
+        logger.debug(f'Ответный код: {html.status_code}')
         html.encoding = 'utf-8'  # сайт выдаёт криво кодировку почему-то, так что исправляем
         return html.text
 

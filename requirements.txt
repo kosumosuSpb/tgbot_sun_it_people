@@ -1,0 +1,5 @@
+requests
+pyTelegramBotAPI
+scheduler~=0.8.3
+bs4~=0.0.1
+beautifulsoup4~=4.11.1
