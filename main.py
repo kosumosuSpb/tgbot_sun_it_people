@@ -84,6 +84,7 @@ def new_member(message: telebot.types.Message):
 def left_member(message: telebot.types.Message):
     """Уведомление о вышедшем пользователе"""
     member = message.left_chat_member
+    logger.debug(f'Left member: {member}')
     bot.send_message(message.chat.id, f"{member.first_name} (@{member.username}) покинул(а) чат о_О")
 
 
