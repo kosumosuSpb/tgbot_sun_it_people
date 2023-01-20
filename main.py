@@ -106,7 +106,7 @@ def cmd_get_holidays(message: telebot.types.Message):
     send_morning_message(message.chat.id)
 
 
-@bot.message_handler(commands=['set_schedule'], chat_types=["private", "group", "supergroup"])
+@bot.message_handler(commands=['set_schedule'], chat_types=["private", "group", "supergroup"], is_chat_admin=True)
 def cmd_set_schedule(message: telebot.types.Message):
     """Обработчик команды /set_schedule"""
     logger.debug(f'Got command: {message.text}')
